@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const PostSchema = new mongoose.Schema({
+username: { type: String, required: true },
   text: { type: String, required: true, maxlength: 200 },
   reactions: {
     fire: { type: Number, default: 0 },
