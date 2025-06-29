@@ -1,52 +1,66 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-require('dotenv').config();
-
-const Post = require('./models/Post');
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const Post = require("./models/Post");
+require("dotenv").config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Connect to MongoDB
+// Connect MongoDB
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
-  useUnifiedTopology: true,
-}).then(() => console.log('✅ MongoDB connected'))
-  .catch((err) => console.error('❌ MongoDB error:', err));
+  useUnifiedTopology: true
+})
+.then(() => console.log("MongoDB connected"))
+.catch((err) => console.error("MongoDB error:", err));
 
-// Routes
-
-// Get all posts
-app.get('/posts', async (req, res) => {
-  const posts = await Post.find().sort({ createdAt: -1 });
-  res.json(posts);
-});
-
-// Create new post
-app.post('/posts', async (req, res) => {
+// === Create a new post ===
+app.post("/posts", async (req, res) => {
   const { text } = req.body;
-  const newPost = new Post({ text });
-  await newPost.save();
-  res.status(201).json(newPost);
+  if (!text) return res.status(400).json({ error: "Text is required" });
+
+  try {
+    const newPost = new Post({ text });
+    await newPost.save();
+    res.status(201).json(newPost);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to create post" });
+  }
 });
 
-// React to a post
-app.patch('/posts/:id/react', async (req, res) => {
+// === Get all posts ===
+app.get("/posts", async (req, res) => {
+  try {
+    const posts = await Post.find().sort({ createdAt: -1 });
+    res.json(posts);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch posts" });
+  }
+});
+
+// === React to a post ===
+app.patch("/posts/:id/react", async (req, res) => {
   const { id } = req.params;
-  const { type } = req.body; // type = 'fire' | 'skull' | 'bulb'
+  const { type } = req.body;
 
-  if (!['fire', 'skull', 'bulb'].includes(type))
-    return res.status(400).json({ error: 'Invalid reaction type' });
+  if (!["fire", "skull", "bulb"].includes(type)) {
+    return res.status(400).json({ error: "Invalid emoji type" });
+  }
 
-  const post = await Post.findById(id);
-  if (!post) return res.status(404).json({ error: 'Post not found' });
+  try {
+    const post = await Post.findById(id);
+    if (!post) return res.status(404).json({ error: "Post not found" });
 
-  post.reactions[type]++;
-  await post.save();
-  res.json(post);
+    post.reactions[type]++;
+    await post.save();
+    res.json(post);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to react" });
+  }
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+// Start server
+const PORT = process.env.PORT || 8000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
