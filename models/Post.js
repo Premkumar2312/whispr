@@ -1,14 +1,13 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const PostSchema = new mongoose.Schema({
-username: { type: String, required: true },
-  text: { type: String, required: true, maxlength: 200 },
+  text: { type: String, required: true },
   reactions: {
     fire: { type: Number, default: 0 },
     skull: { type: Number, default: 0 },
-    bulb: { type: Number, default: 0 },
+    bulb: { type: Number, default: 0 }
   },
-  createdAt: { type: Date, default: Date.now },
+  createdAt: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model('Post', PostSchema);
+module.exports = mongoose.model("Post", PostSchema);
